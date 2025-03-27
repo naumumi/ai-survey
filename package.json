@@ -4,11 +4,13 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-google-signin/google-signin": "^13.2.0",
+    "ai-survey": "file:",
     "expo": "~52.0.41",
     "expo-status-bar": "~2.0.1",
     "react": "18.3.1",
