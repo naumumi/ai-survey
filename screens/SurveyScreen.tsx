@@ -9,24 +9,39 @@ import {
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  TouchableOpacity
 } from 'react-native';
 import { Checkbox } from 'react-native-paper';
-import * as MailComposer from 'expo-mail-composer';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import axios from 'axios'; // at the top if not imported
+import axios from 'axios';
+import DateTimePicker, {
+  DateTimePickerEvent
+} from '@react-native-community/datetimepicker';
 
 type RootStackParamList = { Survey: { user: string } };
 type SurveyRouteProp = RouteProp<RootStackParamList, 'Survey'>;
 
 const aiModels = ['ChatGPT', 'Bard', 'Claude', 'Copilot'];
 
+// A simple function to check for suspicious patterns.
+// In production, rely primarily on backend checks.
+const containsSuspiciousContent = (input: string): boolean => {
+  const suspiciousPatterns = [
+    '--', ';', '/*', '*/', 'DROP ', 'SELECT ', 'INSERT ', 'DELETE ', 'UPDATE ',
+    '$where', '{', '}', '<script', '</script>'
+  ];
+  return suspiciousPatterns.some(pattern => input.toLowerCase().includes(pattern));
+};
+
 const SurveyScreen = () => {
   const route = useRoute<SurveyRouteProp>();
-  const user = route.params.user;
+  const userParam = route.params.user;
 
-  const [name, setName] = useState(user || '');
-  const [birthDate, setBirthDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [birthDateObject, setBirthDateObject] = useState<Date | null>(null);
+
+  const [name, setName] = useState(userParam || '');
   const [education, setEducation] = useState('');
   const [city, setCity] = useState('');
   const [gender, setGender] = useState('');
@@ -45,38 +60,107 @@ const SurveyScreen = () => {
     }
   };
 
-  const canSubmit = () => {
-    return (
-      name.trim() &&
-      birthDate.trim() &&
-      education.trim() &&
-      city.trim() &&
-      gender.trim() &&
-      selectedModels.length > 0 &&
-      selectedModels.every((m) => modelCons[m]?.trim()) &&
-      useCase.trim()
-    );
+  // Validate date (ensure the birth date is not in the future)
+  const isValidBirthDate = (date: Date | null) => {
+    if (!date) return false;
+    return date <= new Date();
   };
 
-  const handleSubmit = async () => {
-    const payload = {
-      user,
+  const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (event.type !== 'dismissed' && selectedDate) {
+      setBirthDateObject(selectedDate);
+    }
+  };
+
+  const getFormattedDate = (date: Date | null) => {
+    if (!date) return '';
+    const yyyy = date.getFullYear();
+    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+    const dd = date.getDate().toString().padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // Combined front-end validations
+  const canSubmit = (): boolean => {
+    const trimmedName = name.trim();
+    const trimmedCity = city.trim();
+    const trimmedGender = gender.trim();
+    const validModelsSelected = selectedModels.length > 0;
+    const allConsFilled = validModelsSelected
+      ? selectedModels.every(m => modelCons[m]?.trim())
+      : false;
+    const validDate = isValidBirthDate(birthDateObject);
+    const trimmedUseCase = useCase.trim();
+
+    if (!trimmedName || !birthDateObject || !education.trim() || 
+        !trimmedCity || !trimmedGender || !trimmedUseCase) {
+      return false;
+    }
+
+    if (!validModelsSelected || !allConsFilled) {
+      return false;
+    }
+
+    return validDate;
+  };
+
+  // Check for suspicious input in all fields
+  const isAnyInputSuspicious = (): boolean => {
+    const fieldsToCheck = [
       name,
-      birthDate,
       education,
       city,
       gender,
+      useCase,
+      ...Object.values(modelCons)
+    ];
+    return fieldsToCheck.some(containsSuspiciousContent);
+  };
+
+  const handleSubmit = async () => {
+    // Check for suspicious input and show pop-up if found.
+    if (isAnyInputSuspicious()) {
+      Alert.alert(
+        'Error',
+        'Input contains suspicious or disallowed content. Please revise.'
+      );
+      return;
+    }
+
+    if (!canSubmit()) {
+      Alert.alert(
+        'Error',
+        'Please fill all fields correctly before submitting.'
+      );
+      return;
+    }
+
+    const payload = {
+      user: userParam,
+      name: name.trim(),
+      birthDate: getFormattedDate(birthDateObject),
+      education: education.trim(),
+      city: city.trim(),
+      gender: gender.trim(),
       models: selectedModels,
       modelCons,
-      useCase,
+      useCase: useCase.trim(),
     };
-  
+
     try {
       const response = await axios.post('http://10.0.2.2:5000/api/submit_survey', payload);
-  
       if (response.data.success) {
         Alert.alert('Success', 'Survey submitted successfully!');
-        console.log('Survey payload:', payload);
+        // Clear inputs on success
+        setName(userParam || '');
+        setBirthDateObject(null);
+        setEducation('');
+        setCity('');
+        setGender('');
+        setSelectedModels([]);
+        setModelCons({});
+        setUseCase('');
       } else {
         Alert.alert('Error', response.data.message || 'Submission failed');
       }
@@ -85,7 +169,6 @@ const SurveyScreen = () => {
       Alert.alert('Error', 'An error occurred while submitting the survey.');
     }
   };
-  
 
   return (
     <KeyboardAvoidingView
@@ -98,30 +181,52 @@ const SurveyScreen = () => {
       >
         <Text style={styles.heading}>AI Survey</Text>
 
+        {/* Name Field */}
         <TextInput
           placeholder="Name Surname"
           value={name}
           onChangeText={setName}
           style={styles.input}
         />
-        <TextInput
-          placeholder="Birth Date (e.g. 2000-01-01)"
-          value={birthDate}
-          onChangeText={setBirthDate}
-          style={styles.input}
-        />
+
+        {/* Birth Date Field (Date Picker) */}
+        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <View pointerEvents="none">
+            <TextInput
+              placeholder="Birth Date"
+              value={getFormattedDate(birthDateObject)}
+              style={styles.input}
+              editable={false}
+            />
+          </View>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={birthDateObject || new Date()}
+            mode="date"
+            display="default"
+            maximumDate={new Date()} // Prevents selection of future dates
+            onChange={onDateChange}
+          />
+        )}
+
+        {/* Education Field */}
         <TextInput
           placeholder="Education Level"
           value={education}
           onChangeText={setEducation}
           style={styles.input}
         />
+
+        {/* City Field */}
         <TextInput
           placeholder="City"
           value={city}
           onChangeText={setCity}
           style={styles.input}
         />
+
+        {/* Gender Field */}
         <TextInput
           placeholder="Gender"
           value={gender}
@@ -129,6 +234,7 @@ const SurveyScreen = () => {
           style={styles.input}
         />
 
+        {/* AI Models */}
         <Text style={styles.label}>AI Models You Tried:</Text>
         {aiModels.map((model) => (
           <View key={model} style={styles.checkboxContainer}>
@@ -140,6 +246,7 @@ const SurveyScreen = () => {
           </View>
         ))}
 
+        {/* Cons for each selected model */}
         {selectedModels.map((model) => (
           <TextInput
             key={model}
@@ -150,6 +257,7 @@ const SurveyScreen = () => {
           />
         ))}
 
+        {/* Use Case Field */}
         <TextInput
           placeholder="Any use case of AI that is beneficial in daily life"
           value={useCase}
