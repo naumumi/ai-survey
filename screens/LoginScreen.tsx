@@ -91,8 +91,9 @@ export default function LoginScreen({ navigation }: Props) {
       );
 
       if (response.data.success) {
-        Alert.alert('Google Login', 'Success! Welcome: ' + response.data.email);
-        navigation.navigate('Survey', { user: identifier });
+        const userEmail = response.data.email; // <- use this from backend
+        Alert.alert('Google Login', 'Success! Welcome: ' + userEmail);
+        navigation.navigate('Survey', { user: userEmail });
       }
       else {
         Alert.alert('Error', response.data.message || 'Google sign-in failed');
