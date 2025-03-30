@@ -20,10 +20,12 @@ import {
 // If using React Navigation:
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  // Add other screens if needed
+    Login: undefined;
+    Register: undefined;
+    Survey: { user: string }; 
 };
+
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
@@ -53,9 +55,9 @@ export default function LoginScreen({ navigation }: Props) {
 
       if (response.data.success) {
         Alert.alert('Success', 'Login successful!');
-        // Navigate or do something else
-        // navigation.navigate('SomeOtherScreen', { user: identifier });
-      } else {
+        navigation.navigate('Survey', { user: identifier });
+      }
+      else {
         Alert.alert('Login Failed', response.data.message || 'Unknown error');
       }
     } catch (error) {
@@ -72,6 +74,10 @@ export default function LoginScreen({ navigation }: Props) {
         const userInfo = await GoogleSignin.signIn();
         console.log(JSON.stringify(userInfo, null, 2));
         // get the idToken from the userInfo object
+        if (!userInfo.data) {
+          Alert.alert('Google Sign-In Error', 'No user data returned');
+          return;
+        }
         const idToken = userInfo.data.idToken;
       if (!idToken) {
         Alert.alert('Google Sign-In Error', 'No idToken returned');
@@ -86,8 +92,9 @@ export default function LoginScreen({ navigation }: Props) {
 
       if (response.data.success) {
         Alert.alert('Google Login', 'Success! Welcome: ' + response.data.email);
-        // Navigate or do something else
-      } else {
+        navigation.navigate('Survey', { user: identifier });
+      }
+      else {
         Alert.alert('Error', response.data.message || 'Google sign-in failed');
       }
     } catch (error: any) {
