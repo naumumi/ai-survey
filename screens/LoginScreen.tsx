@@ -124,13 +124,16 @@ export default function LoginScreen({ navigation }: Props) {
         onChangeText={setIdentifier}
         style={styles.input}
         autoCapitalize="none"
+        testID="identifier" // Change from login_identifier to identifier
       />
+
       <TextInput
         placeholder="Password"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
         style={styles.input}
+        testID="password" // Add this testID
       />
 
       <Button title="Login" onPress={handleLogin} />

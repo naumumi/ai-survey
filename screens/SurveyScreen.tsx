@@ -187,6 +187,7 @@ const SurveyScreen = () => {
           value={name}
           onChangeText={setName}
           style={styles.input}
+          testID="SurveyScreen_NameInput" // Added testID
         />
 
         {/* Birth Date Field (Date Picker) */}
@@ -197,6 +198,7 @@ const SurveyScreen = () => {
               value={getFormattedDate(birthDateObject)}
               style={styles.input}
               editable={false}
+              testID="SurveyScreen_BirthDateInput" // Added testID
             />
           </View>
         </TouchableOpacity>
@@ -216,6 +218,7 @@ const SurveyScreen = () => {
           value={education}
           onChangeText={setEducation}
           style={styles.input}
+          testID="SurveyScreen_EducationInput" // Added testID
         />
 
         {/* City Field */}
@@ -224,6 +227,7 @@ const SurveyScreen = () => {
           value={city}
           onChangeText={setCity}
           style={styles.input}
+          testID="SurveyScreen_CityInput" // Added testID
         />
 
         {/* Gender Field */}
@@ -232,6 +236,7 @@ const SurveyScreen = () => {
           value={gender}
           onChangeText={setGender}
           style={styles.input}
+          testID="SurveyScreen_GenderInput" // Added testID
         />
 
         {/* AI Models */}
@@ -272,6 +277,7 @@ const SurveyScreen = () => {
           onPress={handleSubmit}
           disabled={!canSubmit()}
           color={canSubmit() ? '#2196F3' : '#aaa'}
+          testID="SurveyScreen_SendButton" // Added testID
         />
 
         {!canSubmit() && (
