@@ -181,12 +181,12 @@ const SurveyScreen = () => {
       >
         <Text style={styles.heading}>AI Survey</Text>
 
-        {/* Name Field */}
+        {/* Identifier Field */}
         <TextInput
-          placeholder="Name Surname"
+          placeholder="User Identifier (email or phone)"
           value={name}
-          onChangeText={setName}
-          style={styles.input}
+          editable={false} // Make it read-only
+          style={[styles.input, { backgroundColor: '#f0f0f0' }]} // Optional styling
           testID="SurveyScreen_NameInput" // Added testID
         />
 
