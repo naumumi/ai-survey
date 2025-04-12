@@ -34,10 +34,13 @@ const containsSuspiciousContent = (input: string): boolean => {
   return suspiciousPatterns.some(pattern => input.toLowerCase().includes(pattern));
 };
 
+
+
 const SurveyScreen = () => {
   const route = useRoute<SurveyRouteProp>();
   const userParam = route.params.user;
 
+  const [errorMessage, setErrorMessage] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [birthDateObject, setBirthDateObject] = useState<Date | null>(null);
 
@@ -81,6 +84,9 @@ const SurveyScreen = () => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+
+  
+
   // Combined front-end validations
   const canSubmit = (): boolean => {
     const trimmedName = name.trim();
@@ -120,13 +126,29 @@ const SurveyScreen = () => {
 
   const handleSubmit = async () => {
     // Check for suspicious input and show pop-up if found.
-    if (isAnyInputSuspicious()) {
-      Alert.alert(
-        'Error',
-        'Input contains suspicious or disallowed content. Please revise.'
-      );
-      return;
-    }
+    console.log("Submission values:", {
+        name,
+        birthDate: getFormattedDate(birthDateObject),
+        education,
+        city,
+        gender,
+        selectedModels,
+        modelCons,
+        useCase,
+        suspicious: isAnyInputSuspicious(),
+        canSubmit: canSubmit()
+      });
+      
+
+
+      if (isAnyInputSuspicious()) {
+        // Commented out:
+        // Alert.alert('Error','Input contains suspicious or disallowed content. Please revise.');
+      
+        // Add a visible error message instead:
+        setErrorMessage('Input contains suspicious or disallowed content.');
+        return;
+      }
 
     if (!canSubmit()) {
       Alert.alert(
@@ -151,8 +173,9 @@ const SurveyScreen = () => {
     try {
       const response = await axios.post('http://10.0.2.2:5000/api/submit_survey', payload);
       if (response.data.success) {
-        Alert.alert('Success', 'Survey submitted successfully!');
+        //Alert.alert('Success', 'Survey submitted successfully!');
         // Clear inputs on success
+            setErrorMessage(''); // 
         setName(userParam || '');
         setBirthDateObject(null);
         setEducation('');
@@ -180,106 +203,138 @@ const SurveyScreen = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <Text style={styles.heading}>AI Survey</Text>
-
+  
         {/* Identifier Field */}
         <TextInput
           placeholder="User Identifier (email or phone)"
           value={name}
-          editable={false} // Make it read-only
-          style={[styles.input, { backgroundColor: '#f0f0f0' }]} // Optional styling
-          testID="SurveyScreen_NameInput" // Added testID
+          editable={false}
+          style={[styles.input, { backgroundColor: '#f0f0f0' }]}
+          testID="SurveyScreen_NameInput"
+          accessibilityLabel='SurveyScreen_NameInput'
+          accessible={true}
         />
+  
+        {/* Birth Date Field */}
+        <TextInput
+  placeholder="Birth Date (YYYY-MM-DD)"
+  value={birthDateObject ? getFormattedDate(birthDateObject) : ''}
+  onChangeText={(text) => {
+    const parsed = new Date(text);
+    if (!isNaN(parsed.getTime())) {
+      setBirthDateObject(parsed);
+    } else {
+      setBirthDateObject(null);
+    }
+  }}
+  style={styles.input}
+  testID="SurveyScreen_BirthDateInput"
+  accessibilityLabel='SurveyScreen_BirthDateInput'
+  accessible={true}
+/>
 
-        {/* Birth Date Field (Date Picker) */}
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <View pointerEvents="none">
-            <TextInput
-              placeholder="Birth Date"
-              value={getFormattedDate(birthDateObject)}
-              style={styles.input}
-              editable={false}
-              testID="SurveyScreen_BirthDateInput" // Added testID
-            />
-          </View>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={birthDateObject || new Date()}
-            mode="date"
-            display="default"
-            maximumDate={new Date()} // Prevents selection of future dates
-            onChange={onDateChange}
-          />
-        )}
-
+  
         {/* Education Field */}
         <TextInput
           placeholder="Education Level"
           value={education}
           onChangeText={setEducation}
           style={styles.input}
-          testID="SurveyScreen_EducationInput" // Added testID
+          testID="SurveyScreen_EducationInput"
+            accessibilityLabel='SurveyScreen_EducationInput'
+            accessible={true}
         />
-
+  
         {/* City Field */}
         <TextInput
           placeholder="City"
           value={city}
           onChangeText={setCity}
           style={styles.input}
-          testID="SurveyScreen_CityInput" // Added testID
+          testID="SurveyScreen_CityInput"
+            accessibilityLabel='SurveyScreen_CityInput'
+            accessible={true}
         />
-
+  
         {/* Gender Field */}
         <TextInput
           placeholder="Gender"
           value={gender}
           onChangeText={setGender}
           style={styles.input}
-          testID="SurveyScreen_GenderInput" // Added testID
+          testID="SurveyScreen_GenderInput"
+            accessibilityLabel='SurveyScreen_GenderInput'
+            accessible={true}
         />
-
+  
         {/* AI Models */}
-        <Text style={styles.label}>AI Models You Tried:</Text>
         {aiModels.map((model) => (
-          <View key={model} style={styles.checkboxContainer}>
-            <Checkbox
-              status={selectedModels.includes(model) ? 'checked' : 'unchecked'}
-              onPress={() => toggleModel(model)}
-            />
-            <Text onPress={() => toggleModel(model)}>{model}</Text>
-          </View>
-        ))}
-
+  <TouchableOpacity
+    key={model}
+    style={styles.checkboxContainer}
+    onPress={() => toggleModel(model)}
+    testID={`SurveyScreen_ModelCheckbox_${model}`}
+    accessibilityLabel={`SurveyScreen_ModelCheckbox_${model}`}
+    accessible={true}
+  >
+    <Checkbox
+      status={selectedModels.includes(model) ? 'checked' : 'unchecked'}
+      onPress={() => toggleModel(model)}
+    />
+    <Text>{model}</Text>
+  </TouchableOpacity>
+))}
+  
         {/* Cons for each selected model */}
-        {selectedModels.map((model) => (
-          <TextInput
+                {selectedModels.map((model) => (
+        <TextInput
             key={model}
             placeholder={`Cons of ${model}`}
             value={modelCons[model] || ''}
             onChangeText={(text) => setModelCons({ ...modelCons, [model]: text })}
             style={styles.input}
-          />
+            testID={`SurveyScreen_ConsInput_${model}`} // <---- EKLE
+            accessibilityLabel={`SurveyScreen_ConsInput_${model}`}
+        />
         ))}
-
+  
         {/* Use Case Field */}
         <TextInput
-          placeholder="Any use case of AI that is beneficial in daily life"
-          value={useCase}
-          onChangeText={setUseCase}
-          multiline
-          numberOfLines={4}
-          style={[styles.input, { height: 100 }]}
-        />
+  placeholder="Any use case of AI that is beneficial in daily life"
+  value={useCase}
+  onChangeText={setUseCase}
+  multiline
+  numberOfLines={4}
+  style={[styles.input, { height: 100 }]}
+  testID="SurveyScreen_UseCaseInput" // <---- EKLE
+  accessibilityLabel="SurveyScreen_UseCaseInput"
+/>
+  
+        {/* Submit Button */}
+        <TouchableOpacity
+  onPress={handleSubmit}
+  disabled={!canSubmit()}
+  testID="SurveyScreen_SendButton"
+  accessibilityLabel="SurveyScreen_SendButton"
+  style={[
+    styles.sendButton,
+    { backgroundColor: canSubmit() ? '#2196F3' : '#aaa' }
+  ]}
+>
+  <Text style={styles.sendButtonText}>Send</Text>
+</TouchableOpacity>
 
-        <Button
-          title="Send"
-          onPress={handleSubmit}
-          disabled={!canSubmit()}
-          color={canSubmit() ? '#2196F3' : '#aaa'}
-          testID="SurveyScreen_SendButton" // Added testID
-        />
+{errorMessage !== '' && (
+  <Text
+    style={{ color: 'red', marginTop: 10, textAlign: 'center' }}
+    testID="SurveyScreen_ErrorMessage"
+    accessibilityLabel="SurveyScreen_ErrorMessage"
+  >
+    {errorMessage}
+  </Text>
+)}
 
+  
         {!canSubmit() && (
           <Text style={styles.warning}>
             Please fill in all fields to enable submission.
@@ -288,6 +343,7 @@ const SurveyScreen = () => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+  
 };
 
 export default SurveyScreen;
@@ -328,4 +384,15 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 10,
   },
+
+  sendButton: {
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontWeight: 'bold'
+  }
 });

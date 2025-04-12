@@ -54,7 +54,7 @@ export default function LoginScreen({ navigation }: Props) {
       });
 
       if (response.data.success) {
-        Alert.alert('Success', 'Login successful!');
+        //Alert.alert('Success', 'Login successful!');
         navigation.navigate('Survey', { user: identifier });
       }
       else {
@@ -125,6 +125,8 @@ export default function LoginScreen({ navigation }: Props) {
         style={styles.input}
         autoCapitalize="none"
         testID="identifier" // Change from login_identifier to identifier
+        accessibilityLabel="identifier" 
+        accessible={true}
       />
 
       <TextInput
@@ -134,6 +136,8 @@ export default function LoginScreen({ navigation }: Props) {
         onChangeText={setPassword}
         style={styles.input}
         testID="password" // Add this testID
+        accessibilityLabel="password"
+        accessible={true}
       />
 
       <Button title="Login" onPress={handleLogin} />
