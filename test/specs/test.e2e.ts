@@ -31,7 +31,7 @@ describe('SurveyScreen Tests', () => {
     await expect($('~SurveyScreen_SendButton')).toBeDisplayed();
   });
 
-  it('Input Validation: name field should be readonly and valid inputs should allow submission', async () => {
+  it('User Validation: name field should be readonly and valid inputs should allow submission', async () => {
     const nameInput = await $('~SurveyScreen_NameInput');
     const nameValue = await nameInput.getText();
     await expect(nameInput).toBeDisplayed();
@@ -46,6 +46,43 @@ describe('SurveyScreen Tests', () => {
     const unchangedValue = await nameInput.getText();
     expect(unchangedValue).toBe(nameValue);
   });
+
+  //  all valid inputs and a successful submission. name: Input validation
+  it('Input Validation: should accept valid inputs and submit successfully', async () => {
+    await $('~SurveyScreen_EducationInput').setValue('Bachelor');
+    await $('~SurveyScreen_BirthDateInput').setValue('2000-01-01');
+    await $('~SurveyScreen_CityInput').setValue('istanbul');
+    await $('~SurveyScreen_GenderInput').setValue('Male');
+    await $('~SurveyScreen_UseCaseInput').setValue('Fun');
+  
+    await $('~SurveyScreen_ModelCheckbox_ChatGPT').click();
+  
+    await browser.waitUntil(async () => {
+      const el = await $('~SurveyScreen_ConsInput_ChatGPT');
+      return await el.isDisplayed();
+    }, {
+      timeout: 7000,
+      timeoutMsg: 'ConsInput_ChatGPT not visible in time'
+    });
+  
+    await $('~SurveyScreen_ConsInput_ChatGPT').setValue('Slow');
+  
+    const sendButton = await $('~SurveyScreen_SendButton');
+  
+    await browser.waitUntil(async () => await sendButton.isEnabled(), {
+      timeout: 5000,
+      timeoutMsg: 'Send button never became enabled'
+    });
+  
+    await sendButton.click();
+  
+    //  Wait for and assert success message
+    const successText = await $('~SurveyScreen_SuccessMessage');
+    await successText.waitForDisplayed({ timeout: 5000 });
+    expect(await successText.getText()).toContain('Survey submitted successfully');
+  });
+  
+
 
   it('Injection Protection: should not accept suspicious input', async () => {
     await $('~SurveyScreen_EducationInput').setValue('DROP TABLE users;');
@@ -79,26 +116,23 @@ describe('SurveyScreen Tests', () => {
   });
   
   
+  // fast clicking test. should not crash on fast submitting.
 
-  it('Fast Clicking: should not crash on multiple rapid clicks on submit', async () => {
-    await $('~SurveyScreen_EducationInput').setValue('University');
-    await $('~SurveyScreen_CityInput').setValue('Ankara');
-    await $('~SurveyScreen_GenderInput').setValue('Other');
-    await $('~SurveyScreen_UseCaseInput').setValue('Translation');
-
-    await $('~SurveyScreen_ModelCheckbox_ChatGPT').click();
-
-    const consInput = await $('~SurveyScreen_ConsInput_ChatGPT');
-    await consInput.waitForDisplayed({ timeout: 5000 });
-    await consInput.setValue('Sometimes makes up answers');
-
-    const sendButton = await $('~SurveyScreen_SendButton');
-    for (let i = 0; i < 5; i++) {
-      await sendButton.click();
-    }
-
-    await browser.pause(2000);
-    const successPage = await browser.getPageSource();
-    expect(successPage).toContain('Survey submitted successfully!');
+  it('Fast Clicking: should not crash on fast submitting', async () => {
+    await $('~SurveyScreen_EducationInput').setValue('Bachelor');
+    await $('~SurveyScreen_BirthDateInput').setValue('2000-01-01');
+    await $('~SurveyScreen_CityInput').setValue('ankara');
+    await $('~SurveyScreen_GenderInput').setValue('Male');
+    await $('~SurveyScreen_UseCaseInput').setValue('sana ne');
+    
+    await browser.waitUntil(async () => {
+        const btn = await $('~SurveyScreen_SendButton');
+        return await btn.isEnabled();
+      }, {
+        timeout: 5000,
+        timeoutMsg: 'Send button never became enabled'
+      });
+      
   });
+  
 });

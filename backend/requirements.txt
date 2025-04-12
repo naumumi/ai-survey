@@ -1,0 +1,6 @@
+Flask
+Flask-Cors
+pymongo
+passlib
+requests-oauthlib
+bcrypt

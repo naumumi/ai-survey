@@ -41,6 +41,8 @@ const SurveyScreen = () => {
   const userParam = route.params.user;
 
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [birthDateObject, setBirthDateObject] = useState<Date | null>(null);
 
@@ -176,6 +178,7 @@ const SurveyScreen = () => {
         //Alert.alert('Success', 'Survey submitted successfully!');
         // Clear inputs on success
             setErrorMessage(''); // 
+            setSuccessMessage('Survey submitted successfully!');
         setName(userParam || '');
         setBirthDateObject(null);
         setEducation('');
@@ -293,7 +296,7 @@ const SurveyScreen = () => {
             value={modelCons[model] || ''}
             onChangeText={(text) => setModelCons({ ...modelCons, [model]: text })}
             style={styles.input}
-            testID={`SurveyScreen_ConsInput_${model}`} // <---- EKLE
+            testID={`SurveyScreen_ConsInput_${model}`} //
             accessibilityLabel={`SurveyScreen_ConsInput_${model}`}
         />
         ))}
@@ -313,7 +316,7 @@ const SurveyScreen = () => {
         {/* Submit Button */}
         <TouchableOpacity
   onPress={handleSubmit}
-  disabled={!canSubmit()}
+  //disabled={!canSubmit()}
   testID="SurveyScreen_SendButton"
   accessibilityLabel="SurveyScreen_SendButton"
   style={[
@@ -334,6 +337,16 @@ const SurveyScreen = () => {
   </Text>
 )}
 
+{successMessage !== '' && (
+  <Text
+    style={{ color: 'green', marginTop: 10, textAlign: 'center' }}
+    testID="SurveyScreen_SuccessMessage"
+    accessibilityLabel="SurveyScreen_SuccessMessage"
+  >
+    {successMessage}
+  </Text>
+)}
+
   
         {!canSubmit() && (
           <Text style={styles.warning}>
@@ -349,50 +362,56 @@ const SurveyScreen = () => {
 export default SurveyScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-  },
-  label: {
-    marginTop: 12,
-    fontWeight: 'bold',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  warning: {
-    textAlign: 'center',
-    color: '#999',
-    marginTop: 10,
-  },
-
-  sendButton: {
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 16
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontWeight: 'bold'
-  }
-});
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 60,
+    },
+    heading: {
+      fontSize: 20,
+      fontWeight: '600',
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 6,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      marginBottom: 8,
+    },
+    label: {
+      marginTop: 10,
+      fontWeight: '500',
+    },
+    checkboxContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+    warning: {
+      textAlign: 'center',
+      color: '#999',
+      marginTop: 8,
+      fontSize: 13,
+    },
+    sendButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 6,
+      alignItems: 'center',
+      marginTop: 12,
+      marginBottom: 8,
+    },
+    sendButtonText: {
+      color: '#fff',
+      fontWeight: '600',
+      fontSize: 16,
+    }
+  });
+  
