@@ -123,7 +123,7 @@ describe('SurveyScreen Tests', () => {
     await $('~SurveyScreen_BirthDateInput').setValue('2000-01-01');
     await $('~SurveyScreen_CityInput').setValue('ankara');
     await $('~SurveyScreen_GenderInput').setValue('Male');
-    await $('~SurveyScreen_UseCaseInput').setValue('sana ne');
+    await $('~SurveyScreen_UseCaseInput').setValue('casual');
     
     await browser.waitUntil(async () => {
         const btn = await $('~SurveyScreen_SendButton');
