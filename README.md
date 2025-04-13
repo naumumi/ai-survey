@@ -30,7 +30,7 @@ Before you begin, ensure you have the following installed:
 
 ## Required Dependencies
 
-The project uses the following key dependencies (install using `npx expo install`):
+The project uses the following key dependencies (install using `npx expo install`. if you encounter any error, try `npm install`):
 
 - `@react-native-google-signin/google-signin`
 - `expo-status-bar`
@@ -81,7 +81,7 @@ npx expo run:android
 
 ### WebdriverIO Configuration
 
-Before running the tests, you need to configure WebdriverIO. Make sure your `wdio.conf.ts` file contains the following capabilities configuration:
+Before running the tests, you need to configure WebdriverIO. Make sure your `wdio.conf.ts` file contains the following capabilities configuration (for the 'appium:platformVersion': '14.0' value, make sure you give the correct platform version. If you have issues building the app and running the tests, it might be about this. You may try switching to 16, or other versions, according to the emulator you've created.):
 
 ```typescript
 capabilities: [{
