@@ -116,6 +116,7 @@ To run the end-to-end tests:
 
 ## Important Note:
 For testing the email sending functionality, you may change the email address which the email will be sent to.
+In backend's app.py, change the email address to yours.
 
 ## Project Structure
 
